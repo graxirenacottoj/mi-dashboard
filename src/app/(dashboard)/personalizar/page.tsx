@@ -11,11 +11,14 @@ import {
   Pencil,
   X,
   Target,
-  Megaphone,
   CalendarDays,
-  Users,
   TrendingUp,
   Lightbulb,
+  DollarSign,
+  Handshake,
+  Package,
+  Zap,
+  BarChart3,
 } from "lucide-react";
 
 // ——— Tipos del formulario ———
@@ -432,18 +435,142 @@ function ModalEstrategia({
   datos: DatosBlueprint;
   onCerrar: () => void;
 }) {
-  // Genera lista de canales a partir del textarea (uno por línea)
+  // Lista de canales de referencia
   const canalesLista = datos.canales
     .split("\n")
     .map((c) => c.trim())
     .filter(Boolean);
 
-  // Patrones de títulos sugeridos basados en el nicho
-  const patronesTitulo = [
-    `Cómo [acción] en ${datos.nicho.toLowerCase()} sin [obstáculo común]`,
-    `${datos.metaSuscriptores ? "El método" : "Lo que"} que cambió mi forma de ver ${datos.nicho.toLowerCase()}`,
-    `5 errores que cometí en ${datos.nicho.toLowerCase()} (y cómo evitarlos)`,
-    `${datos.audiencia.split(" ").slice(0, 3).join(" ")}: esto necesitas saber sobre [tema]`,
+  // ——— FUENTES DE INGRESO (priorizadas por velocidad de implementación) ———
+  const fuentesIngreso = [
+    {
+      nombre: "Marketing de afiliados",
+      fase: "Desde el día 1",
+      potencial: "$50–$2,000/mes",
+      facilidad: "Fácil",
+      descripcion: `Recomienda productos relacionados con ${datos.nicho.toLowerCase()} y gana comisión por cada venta. Coloca enlaces en la descripción.`,
+      requiere: "0 suscriptores",
+      color: "exito" as const,
+    },
+    {
+      nombre: "AdSense (YouTube Partner Program)",
+      fase: "1,000 subs + 4,000h",
+      potencial: "$1–$5 por cada 1,000 vistas",
+      facilidad: "Automático",
+      descripcion: `Una vez calificado, YouTube paga por cada vista monetizada. Con tu meta de ${datos.metaVistas || "vistas mensuales"} esto genera ingresos pasivos.`,
+      requiere: "1,000 suscriptores",
+      color: "info" as const,
+    },
+    {
+      nombre: "Patrocinios directos",
+      fase: "5,000+ subs",
+      potencial: "$500–$5,000 por video",
+      facilidad: "Negociación",
+      descripcion: `Marcas pagan menciones en tus videos. Usa el módulo de Patrocinios del dashboard para gestionar deals.`,
+      requiere: "5,000 suscriptores",
+      color: "acento" as const,
+    },
+    {
+      nombre: "Producto digital propio",
+      fase: "10,000+ subs",
+      potencial: "$2,000–$20,000/lanzamiento",
+      facilidad: "Requiere creación",
+      descripcion: `Curso, ebook o plantillas sobre ${datos.nicho.toLowerCase()}. Tu propuesta única ("${datos.diferenciador.slice(0, 60)}${datos.diferenciador.length > 60 ? "..." : ""}") es la base de venta.`,
+      requiere: "10,000 suscriptores",
+      color: "acento" as const,
+    },
+    {
+      nombre: "Servicio premium / consultoría",
+      fase: "Cualquier fase",
+      potencial: "$200–$5,000 por cliente",
+      facilidad: "Alto valor",
+      descripcion: `Coaching 1-a-1 o servicios para tu audiencia (${datos.audiencia.split(",")[0] || "tu nicho"}). El margen más alto.`,
+      requiere: "Audiencia comprometida",
+      color: "puntaje" as const,
+    },
+  ];
+
+  // ——— PATROCINIOS POTENCIALES por categoría según nicho ———
+  const categoriasMarcas = generarCategoriasMarcas(datos.nicho);
+
+  // ——— PRODUCTOS DIGITALES sugeridos ———
+  const productosDigitales = [
+    {
+      tipo: "Curso completo",
+      titulo: `Masterclass de ${datos.nicho}`,
+      precio: "$197 – $497",
+      esfuerzo: "Alto",
+      margen: "85%",
+    },
+    {
+      tipo: "Ebook / Guía",
+      titulo: `La guía definitiva sobre ${datos.problema.split(" ").slice(0, 5).join(" ") || "tu tema"}`,
+      precio: "$17 – $47",
+      esfuerzo: "Medio",
+      margen: "95%",
+    },
+    {
+      tipo: "Plantillas / Recursos",
+      titulo: `Kit de plantillas de ${datos.nicho}`,
+      precio: "$27 – $97",
+      esfuerzo: "Bajo",
+      margen: "98%",
+    },
+    {
+      tipo: "Comunidad de pago",
+      titulo: `Membresía privada para ${datos.audiencia.split(",")[0] || "tu audiencia"}`,
+      precio: "$19 – $49/mes",
+      esfuerzo: "Recurrente",
+      margen: "90%",
+    },
+  ];
+
+  // ——— TÍTULOS QUE MONETIZAN MEJOR ———
+  // Tipos probados que retienen audiencia y permiten patrocinios naturales
+  const titulosMonetizables = [
+    {
+      patron: `Cuánto gané con ${datos.nicho.toLowerCase()} en mi primer año (cifras reales)`,
+      monetiza: "Patrocinios financieros + productos propios",
+    },
+    {
+      patron: `Probé [herramienta del nicho] por 30 días — esto cambió mi negocio`,
+      monetiza: "Afiliados + patrocinios de la herramienta",
+    },
+    {
+      patron: `Las 7 herramientas que uso para ${datos.nicho.toLowerCase()} (y cuánto pago)`,
+      monetiza: "100% afiliados — alta conversión",
+    },
+    {
+      patron: `Cómo escalé de $0 a [cifra] en ${datos.nicho.toLowerCase()} sin [objeción común]`,
+      monetiza: "Producto digital propio + curso",
+    },
+    {
+      patron: `Reseña honesta: [marca/producto popular] vs [alternativa]`,
+      monetiza: "Patrocinios + afiliados (alto CPC)",
+    },
+  ];
+
+  // ——— PROYECCIÓN DE INGRESOS por fase ———
+  const fasesIngresos = [
+    {
+      fase: "Mes 1-3 — Construcción",
+      meta: "$50 – $500 / mes",
+      activos: ["Afiliados", "Servicios premium"],
+      enfoque:
+        "Construir audiencia + cerrar primeros clientes de coaching/consultoría",
+    },
+    {
+      fase: "Mes 4-6 — Activación",
+      meta: "$500 – $3,000 / mes",
+      activos: ["Afiliados", "AdSense", "Primeros patrocinios"],
+      enfoque: "Califica para YouTube Partner + cierra 1-2 patrocinios",
+    },
+    {
+      fase: "Mes 7-12 — Escala",
+      meta: `$3,000 – ${datos.metaMonetizacion || "$10,000+"} / mes`,
+      activos: ["Patrocinios recurrentes", "Producto digital", "Servicios"],
+      enfoque: "Lanza tu producto digital — el activo de mayor margen",
+    },
   ];
 
   return (
@@ -459,14 +586,14 @@ function ModalEstrategia({
         <div className="flex items-start justify-between p-5 border-b border-borde">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 bg-acento rounded-lg flex items-center justify-center shrink-0">
-              <Sparkles size={18} className="text-white" />
+              <DollarSign size={18} className="text-white" />
             </div>
             <div>
               <h2 className="text-lg font-extrabold text-white">
-                Tu estrategia personalizada
+                Tu estrategia de monetización
               </h2>
               <p className="text-xs text-texto-secundario mt-0.5">
-                Generada a partir de tu Plan de Marca Personal
+                5 fuentes de ingreso, productos sugeridos y proyección a 12 meses
               </p>
             </div>
           </div>
@@ -480,92 +607,217 @@ function ModalEstrategia({
         </div>
 
         {/* Contenido */}
-        <div className="p-5 flex flex-col gap-5">
-          {/* Tu enfoque */}
-          <Seccion icono={Target} titulo="Tu enfoque">
-            <CampoEstrategia etiqueta="Nicho" valor={datos.nicho} />
-            <CampoEstrategia etiqueta="Audiencia ideal" valor={datos.audiencia} />
-            <CampoEstrategia
-              etiqueta="Problema que resuelves"
-              valor={datos.problema}
-            />
-          </Seccion>
+        <div className="p-5 flex flex-col gap-6">
+          {/* Banner de meta */}
+          <div className="bg-gradient-to-br from-[#2a1a00] to-[#1a1a1a] border border-acento/40 rounded-card p-4">
+            <p className="label-xs mb-1.5 flex items-center gap-1.5">
+              <Target size={11} />
+              Tu meta declarada
+            </p>
+            <p className="text-base font-extrabold text-acento">
+              {datos.metaMonetizacion}
+            </p>
+            <p className="text-[11px] text-texto-secundario mt-1">
+              Esta estrategia está diseñada para llevarte ahí en 6-12 meses
+              combinando 5 fuentes de ingreso.
+            </p>
+          </div>
 
-          {/* Tu diferenciador */}
-          <Seccion icono={Megaphone} titulo="Tu diferenciador">
-            <CampoEstrategia
-              etiqueta="Propuesta de valor"
-              valor={datos.propuestaValor}
-            />
-            <CampoEstrategia
-              etiqueta="Qué te hace único"
-              valor={datos.diferenciador}
-            />
-          </Seccion>
-
-          {/* Calendario sugerido */}
-          <Seccion icono={CalendarDays} titulo="Tu calendario de contenido">
-            <div className="grid grid-cols-2 gap-3">
-              <CampoEstrategia etiqueta="Tono" valor={datos.tono} />
-              <CampoEstrategia etiqueta="Formato" valor={datos.formato} />
-              <CampoEstrategia etiqueta="Duración" valor={datos.duracion} />
-              <CampoEstrategia etiqueta="Frecuencia" valor={datos.frecuencia} />
-            </div>
-          </Seccion>
-
-          {/* Canales a rastrear */}
-          <Seccion icono={Users} titulo={`Canales de referencia (${canalesLista.length})`}>
-            <div className="flex flex-wrap gap-2">
-              {canalesLista.map((canal, i) => (
-                <span
+          {/* 5 fuentes de ingreso */}
+          <Seccion
+            icono={DollarSign}
+            titulo="Tus 5 fuentes de ingreso (ordenadas por facilidad)"
+          >
+            <div className="flex flex-col gap-2">
+              {fuentesIngreso.map((f, i) => (
+                <div
                   key={i}
-                  className="bg-[#001a2a] text-info border border-info/30 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                  className="bg-panel border border-borde rounded-md p-3"
                 >
-                  {canal}
-                </span>
+                  <div className="flex items-start justify-between gap-3 mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-acento text-white text-[10px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shrink-0">
+                        {i + 1}
+                      </span>
+                      <h4 className="text-sm font-bold text-white">
+                        {f.nombre}
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-bold text-exito shrink-0">
+                      {f.potencial}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-texto-secundario leading-relaxed mb-2">
+                    {f.descripcion}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <Tag>{f.fase}</Tag>
+                    <Tag>Requiere: {f.requiere}</Tag>
+                    <Tag>{f.facilidad}</Tag>
+                  </div>
+                </div>
               ))}
             </div>
           </Seccion>
 
-          {/* Plan de 90 días */}
-          <Seccion icono={TrendingUp} titulo="Tu plan de 90 días">
-            <CampoEstrategia
-              etiqueta="Meta de suscriptores"
-              valor={datos.metaSuscriptores}
-            />
-            <CampoEstrategia
-              etiqueta="Meta de vistas mensuales"
-              valor={datos.metaVistas}
-            />
-            <CampoEstrategia
-              etiqueta="Meta de monetización"
-              valor={datos.metaMonetizacion}
-            />
+          {/* Patrocinios potenciales */}
+          <Seccion
+            icono={Handshake}
+            titulo="Categorías de marcas para patrocinios"
+          >
+            <p className="text-[11px] text-texto-suave mb-2">
+              Marcas que típicamente patrocinan creadores en tu nicho. Agrégalas
+              al módulo de Patrocinios:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {categoriasMarcas.map((cat, i) => (
+                <div
+                  key={i}
+                  className="bg-panel border border-borde rounded-md p-2.5"
+                >
+                  <p className="text-xs font-bold text-white mb-0.5">
+                    {cat.categoria}
+                  </p>
+                  <p className="text-[10px] text-texto-secundario mb-1">
+                    {cat.ejemplos}
+                  </p>
+                  <p className="text-[10px] font-bold text-exito">
+                    {cat.cpm}
+                  </p>
+                </div>
+              ))}
+            </div>
           </Seccion>
 
-          {/* Patrones de títulos sugeridos */}
-          <Seccion icono={Lightbulb} titulo="Patrones de títulos sugeridos">
+          {/* Productos digitales sugeridos */}
+          <Seccion
+            icono={Package}
+            titulo="Productos digitales que puedes crear"
+          >
+            <div className="flex flex-col gap-2">
+              {productosDigitales.map((p, i) => (
+                <div
+                  key={i}
+                  className="bg-panel border border-borde rounded-md p-2.5 flex items-start justify-between gap-3"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[9px] font-bold text-acento bg-[#2a1a00] px-1.5 py-0.5 rounded uppercase">
+                        {p.tipo}
+                      </span>
+                    </div>
+                    <p className="text-xs text-white font-semibold">
+                      {p.titulo}
+                    </p>
+                    <p className="text-[10px] text-texto-suave mt-0.5">
+                      Esfuerzo: {p.esfuerzo} · Margen: {p.margen}
+                    </p>
+                  </div>
+                  <span className="text-xs font-extrabold text-exito shrink-0">
+                    {p.precio}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Seccion>
+
+          {/* Títulos que monetizan */}
+          <Seccion icono={Lightbulb} titulo="Patrones de títulos que monetizan mejor">
             <ul className="flex flex-col gap-2">
-              {patronesTitulo.map((patron, i) => (
+              {titulosMonetizables.map((t, i) => (
                 <li
                   key={i}
-                  className="bg-panel border border-borde rounded-md p-2.5 text-xs text-texto-secundario"
+                  className="bg-panel border border-borde rounded-md p-2.5"
                 >
-                  <span className="text-acento font-bold mr-1.5">{i + 1}.</span>
-                  {patron}
+                  <p className="text-xs text-white font-semibold leading-snug">
+                    <span className="text-acento font-bold mr-1.5">
+                      {i + 1}.
+                    </span>
+                    {t.patron}
+                  </p>
+                  <p className="text-[10px] text-exito mt-1 flex items-center gap-1">
+                    <Zap size={9} />
+                    Monetiza con: {t.monetiza}
+                  </p>
                 </li>
               ))}
             </ul>
-            <p className="text-[10px] text-texto-suave mt-2">
-              Reemplaza los corchetes con temas específicos de tu nicho
+          </Seccion>
+
+          {/* Proyección de ingresos por fase */}
+          <Seccion
+            icono={BarChart3}
+            titulo="Tu hoja de ruta de ingresos a 12 meses"
+          >
+            <div className="flex flex-col gap-2">
+              {fasesIngresos.map((f, i) => (
+                <div
+                  key={i}
+                  className="bg-panel border border-borde rounded-md p-3"
+                >
+                  <div className="flex items-center justify-between mb-1.5">
+                    <h4 className="text-xs font-bold text-white">{f.fase}</h4>
+                    <span className="text-sm font-extrabold text-exito">
+                      {f.meta}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mb-1.5">
+                    {f.activos.map((a, j) => (
+                      <Tag key={j}>{a}</Tag>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-texto-secundario">
+                    <span className="text-acento font-bold">Enfoque: </span>
+                    {f.enfoque}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Seccion>
+
+          {/* Plan resumen del usuario */}
+          <Seccion icono={CalendarDays} titulo="Tu plan de contenido">
+            <div className="grid grid-cols-2 gap-2">
+              <CampoEstrategia etiqueta="Frecuencia" valor={datos.frecuencia} />
+              <CampoEstrategia etiqueta="Duración ideal" valor={datos.duracion} />
+            </div>
+            <p className="text-[11px] text-texto-suave mt-1">
+              Con tu frecuencia, en 90 días publicarás{" "}
+              <span className="text-white font-bold">
+                ~{estimarPublicaciones(datos.frecuencia)} videos
+              </span>
+              . Cada uno es una oportunidad de afiliado + posible patrocinio.
             </p>
           </Seccion>
+
+          {/* Canales referencia (compactos) */}
+          {canalesLista.length > 0 && (
+            <Seccion
+              icono={TrendingUp}
+              titulo="Canales que ya monetizan en tu nicho"
+            >
+              <div className="flex flex-wrap gap-1.5">
+                {canalesLista.map((canal, i) => (
+                  <span
+                    key={i}
+                    className="bg-[#001a2a] text-info border border-info/30 px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                  >
+                    {canal}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[10px] text-texto-suave mt-2">
+                Estudia sus videos top en el Feed para ver qué patrocinios
+                aceptan y qué productos venden.
+              </p>
+            </Seccion>
+          )}
         </div>
 
         {/* Pie */}
         <div className="border-t border-borde p-4 flex items-center justify-between">
           <p className="text-[11px] text-texto-suave">
-            Próximamente: la IA generará scripts completos basados en este blueprint
+            Próximo: IA generará scripts optimizados para conversión
           </p>
           <button
             onClick={onCerrar}
@@ -576,6 +828,158 @@ function ModalEstrategia({
         </div>
       </div>
     </div>
+  );
+}
+
+// ——— Helpers ———
+
+function generarCategoriasMarcas(nicho: string) {
+  const n = nicho.toLowerCase();
+  // Categorías universales que aplican a casi todos los nichos
+  const universales = [
+    {
+      categoria: "SaaS / Software",
+      ejemplos: "Notion, ClickUp, Canva Pro",
+      cpm: "CPM: $40–$120",
+    },
+    {
+      categoria: "VPN / Privacidad",
+      ejemplos: "NordVPN, ExpressVPN, Surfshark",
+      cpm: "Pago: $300–$2,000",
+    },
+  ];
+
+  // Categorías específicas por palabras clave del nicho
+  const especificas: Array<{ categoria: string; ejemplos: string; cpm: string }> = [];
+
+  if (/finanz|inversi|cripto|dinero|economi/.test(n)) {
+    especificas.push(
+      {
+        categoria: "Brokers / Trading",
+        ejemplos: "eToro, Robinhood, Trading 212",
+        cpm: "Pago: $500–$5,000",
+      },
+      {
+        categoria: "Tarjetas / Bancos",
+        ejemplos: "Wise, Revolut, Mercury",
+        cpm: "Pago: $200–$1,500",
+      }
+    );
+  }
+
+  if (/tecnolog|gadget|dev|programa|app|software/.test(n)) {
+    especificas.push(
+      {
+        categoria: "Hosting / Cloud",
+        ejemplos: "Hostinger, Vercel, DigitalOcean",
+        cpm: "Pago: $300–$3,000",
+      },
+      {
+        categoria: "Hardware tech",
+        ejemplos: "Logitech, Razer, Samsung",
+        cpm: "Producto + $500–$2,000",
+      }
+    );
+  }
+
+  if (/educaci|aprend|idioma|carrera/.test(n)) {
+    especificas.push(
+      {
+        categoria: "Plataformas educativas",
+        ejemplos: "Skillshare, Coursera, Domestika",
+        cpm: "Pago: $400–$2,000",
+      },
+      {
+        categoria: "Idiomas",
+        ejemplos: "Duolingo, Babbel, Italki",
+        cpm: "Pago: $300–$1,500",
+      }
+    );
+  }
+
+  if (/fitness|salud|deporte|nutricion/.test(n)) {
+    especificas.push(
+      {
+        categoria: "Suplementos",
+        ejemplos: "MyProtein, Athletic Greens",
+        cpm: "Producto + $500–$3,000",
+      },
+      {
+        categoria: "Apps de fitness",
+        ejemplos: "Whoop, Strava, MyFitnessPal",
+        cpm: "Pago: $200–$1,500",
+      }
+    );
+  }
+
+  if (/viaje|turismo|travel|aventura/.test(n)) {
+    especificas.push(
+      {
+        categoria: "Booking / Viajes",
+        ejemplos: "Booking, Airbnb, Expedia",
+        cpm: "Comisión 4–8% por reserva",
+      },
+      {
+        categoria: "Equipo / Cámaras",
+        ejemplos: "GoPro, DJI, Sony",
+        cpm: "Producto + $500–$2,500",
+      }
+    );
+  }
+
+  if (/cocina|comida|gastronom|recet/.test(n)) {
+    especificas.push(
+      {
+        categoria: "Meal kits / Comida",
+        ejemplos: "HelloFresh, Factor",
+        cpm: "Pago: $300–$1,500",
+      },
+      {
+        categoria: "Utensilios cocina",
+        ejemplos: "Le Creuset, Ninja, Vitamix",
+        cpm: "Producto + $200–$1,000",
+      }
+    );
+  }
+
+  if (/negocio|emprende|marketing|venta/.test(n)) {
+    especificas.push(
+      {
+        categoria: "E-commerce / Tools",
+        ejemplos: "Shopify, ConvertKit, ClickFunnels",
+        cpm: "Pago: $500–$5,000",
+      },
+      {
+        categoria: "Cursos de negocio",
+        ejemplos: "MasterClass, Foundr",
+        cpm: "Pago: $400–$2,500",
+      }
+    );
+  }
+
+  // Combina específicas + universales (máximo 6)
+  return [...especificas, ...universales].slice(0, 6);
+}
+
+function estimarPublicaciones(frecuencia: string): number {
+  const f = frecuencia.toLowerCase();
+  // Detecta números en el texto
+  const matchNum = f.match(/(\d+)/);
+  const num = matchNum ? parseInt(matchNum[1], 10) : 1;
+
+  if (/diari|cada día|todos los días/.test(f)) return 90;
+  if (/semana/.test(f)) return num * 13; // ~13 semanas en 90 días
+  if (/mes/.test(f)) return num * 3;
+  if (/quincen/.test(f)) return num * 6;
+
+  return num * 13; // default: por semana
+}
+
+function Tag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-[10px] bg-borde text-texto-secundario px-1.5 py-0.5 rounded font-semibold">
+      {children}
+    </span>
   );
 }
 
