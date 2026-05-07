@@ -9,6 +9,13 @@ import {
   ChevronUp,
   Save,
   Pencil,
+  X,
+  Target,
+  Megaphone,
+  CalendarDays,
+  Users,
+  TrendingUp,
+  Lightbulb,
 } from "lucide-react";
 
 // ——— Tipos del formulario ———
@@ -178,6 +185,7 @@ export default function PaginaPersonalizar() {
   const [datos, setDatos] = useState<DatosBlueprint>(DATOS_INICIALES);
   const [pasoAbierto, setPasoAbierto] = useState<number | null>(1);
   const [cargado, setCargado] = useState(false);
+  const [estrategiaAbierta, setEstrategiaAbierta] = useState(false);
 
   // Cargar de localStorage al montar
   useEffect(() => {
@@ -394,12 +402,209 @@ export default function PaginaPersonalizar() {
         </p>
         <button
           disabled={completados !== PASOS.length}
+          onClick={() => setEstrategiaAbierta(true)}
           className="btn-primario mx-auto flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Sparkles size={13} />
           {completados === PASOS.length ? "Generar mi estrategia" : "Empezar ahora"}
         </button>
       </div>
+
+      {/* Modal de estrategia generada */}
+      {estrategiaAbierta && (
+        <ModalEstrategia
+          datos={datos}
+          onCerrar={() => setEstrategiaAbierta(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// MODAL DE ESTRATEGIA GENERADA
+// ============================================================
+
+function ModalEstrategia({
+  datos,
+  onCerrar,
+}: {
+  datos: DatosBlueprint;
+  onCerrar: () => void;
+}) {
+  // Genera lista de canales a partir del textarea (uno por línea)
+  const canalesLista = datos.canales
+    .split("\n")
+    .map((c) => c.trim())
+    .filter(Boolean);
+
+  // Patrones de títulos sugeridos basados en el nicho
+  const patronesTitulo = [
+    `Cómo [acción] en ${datos.nicho.toLowerCase()} sin [obstáculo común]`,
+    `${datos.metaSuscriptores ? "El método" : "Lo que"} que cambió mi forma de ver ${datos.nicho.toLowerCase()}`,
+    `5 errores que cometí en ${datos.nicho.toLowerCase()} (y cómo evitarlos)`,
+    `${datos.audiencia.split(" ").slice(0, 3).join(" ")}: esto necesitas saber sobre [tema]`,
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/80 flex items-start justify-center overflow-y-auto p-4 sm:p-8"
+      onClick={onCerrar}
+    >
+      <div
+        className="card max-w-3xl w-full my-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Cabecera */}
+        <div className="flex items-start justify-between p-5 border-b border-borde">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-acento rounded-lg flex items-center justify-center shrink-0">
+              <Sparkles size={18} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-extrabold text-white">
+                Tu estrategia personalizada
+              </h2>
+              <p className="text-xs text-texto-secundario mt-0.5">
+                Generada a partir de tu Plan de Marca Personal
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onCerrar}
+            className="text-texto-secundario hover:text-white transition-colors"
+            aria-label="Cerrar"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Contenido */}
+        <div className="p-5 flex flex-col gap-5">
+          {/* Tu enfoque */}
+          <Seccion icono={Target} titulo="Tu enfoque">
+            <CampoEstrategia etiqueta="Nicho" valor={datos.nicho} />
+            <CampoEstrategia etiqueta="Audiencia ideal" valor={datos.audiencia} />
+            <CampoEstrategia
+              etiqueta="Problema que resuelves"
+              valor={datos.problema}
+            />
+          </Seccion>
+
+          {/* Tu diferenciador */}
+          <Seccion icono={Megaphone} titulo="Tu diferenciador">
+            <CampoEstrategia
+              etiqueta="Propuesta de valor"
+              valor={datos.propuestaValor}
+            />
+            <CampoEstrategia
+              etiqueta="Qué te hace único"
+              valor={datos.diferenciador}
+            />
+          </Seccion>
+
+          {/* Calendario sugerido */}
+          <Seccion icono={CalendarDays} titulo="Tu calendario de contenido">
+            <div className="grid grid-cols-2 gap-3">
+              <CampoEstrategia etiqueta="Tono" valor={datos.tono} />
+              <CampoEstrategia etiqueta="Formato" valor={datos.formato} />
+              <CampoEstrategia etiqueta="Duración" valor={datos.duracion} />
+              <CampoEstrategia etiqueta="Frecuencia" valor={datos.frecuencia} />
+            </div>
+          </Seccion>
+
+          {/* Canales a rastrear */}
+          <Seccion icono={Users} titulo={`Canales de referencia (${canalesLista.length})`}>
+            <div className="flex flex-wrap gap-2">
+              {canalesLista.map((canal, i) => (
+                <span
+                  key={i}
+                  className="bg-[#001a2a] text-info border border-info/30 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                >
+                  {canal}
+                </span>
+              ))}
+            </div>
+          </Seccion>
+
+          {/* Plan de 90 días */}
+          <Seccion icono={TrendingUp} titulo="Tu plan de 90 días">
+            <CampoEstrategia
+              etiqueta="Meta de suscriptores"
+              valor={datos.metaSuscriptores}
+            />
+            <CampoEstrategia
+              etiqueta="Meta de vistas mensuales"
+              valor={datos.metaVistas}
+            />
+            <CampoEstrategia
+              etiqueta="Meta de monetización"
+              valor={datos.metaMonetizacion}
+            />
+          </Seccion>
+
+          {/* Patrones de títulos sugeridos */}
+          <Seccion icono={Lightbulb} titulo="Patrones de títulos sugeridos">
+            <ul className="flex flex-col gap-2">
+              {patronesTitulo.map((patron, i) => (
+                <li
+                  key={i}
+                  className="bg-panel border border-borde rounded-md p-2.5 text-xs text-texto-secundario"
+                >
+                  <span className="text-acento font-bold mr-1.5">{i + 1}.</span>
+                  {patron}
+                </li>
+              ))}
+            </ul>
+            <p className="text-[10px] text-texto-suave mt-2">
+              Reemplaza los corchetes con temas específicos de tu nicho
+            </p>
+          </Seccion>
+        </div>
+
+        {/* Pie */}
+        <div className="border-t border-borde p-4 flex items-center justify-between">
+          <p className="text-[11px] text-texto-suave">
+            Próximamente: la IA generará scripts completos basados en este blueprint
+          </p>
+          <button
+            onClick={onCerrar}
+            className="btn-primario text-xs flex items-center gap-1.5"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ——— Sub-componentes del modal ———
+function Seccion({
+  icono: Icono,
+  titulo,
+  children,
+}: {
+  icono: React.ComponentType<{ size?: number; className?: string }>;
+  titulo: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <h3 className="flex items-center gap-2 text-sm font-bold text-white mb-2">
+        <Icono size={14} className="text-acento" />
+        {titulo}
+      </h3>
+      <div className="flex flex-col gap-2">{children}</div>
+    </div>
+  );
+}
+
+function CampoEstrategia({ etiqueta, valor }: { etiqueta: string; valor: string }) {
+  return (
+    <div className="bg-panel border border-borde rounded-md p-2.5">
+      <p className="label-xs mb-1">{etiqueta}</p>
+      <p className="text-xs text-white whitespace-pre-line">{valor}</p>
     </div>
   );
 }
