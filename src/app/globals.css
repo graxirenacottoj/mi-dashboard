@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ——— Variables globales ——— */
+:root {
+  --fondo: #0d0d0d;
+  --panel: #1a1a1a;
+  --borde: #2a2a2a;
+  --acento: #d4831a;
+  --puntaje: #e53935;
+  --info: #42a5f5;
+  --exito: #4caf50;
+  --texto: #ffffff;
+  --texto-sec: #888888;
+  --texto-suave: #555555;
+  --navbar-h: 48px;
+}
+
+/* ——— Reset base ——— */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: var(--fondo);
+  color: var(--texto);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ——— Scrollbar personalizado ——— */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--panel);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--borde);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--texto-suave);
+}
+
+/* ——— Utilidades comunes ——— */
+@layer components {
+  /* Cards */
+  .card {
+    @apply bg-panel border border-borde rounded-card;
+  }
+
+  /* Etiquetas UPPERCASE pequeñas */
+  .label-xs {
+    @apply text-[9px] font-bold tracking-widest uppercase text-texto-secundario;
+  }
+
+  /* Número grande de stat */
+  .stat-num {
+    @apply text-[22px] font-extrabold leading-none;
+  }
+
+  /* Botón primario (dorado) */
+  .btn-primario {
+    @apply bg-acento text-white font-bold text-xs px-4 py-2 rounded-pill
+           hover:bg-acento-claro active:bg-acento-oscuro transition-colors;
+  }
+
+  /* Botón secundario (oscuro) */
+  .btn-secundario {
+    @apply bg-panel border border-borde text-texto-secundario font-semibold
+           text-xs px-3 py-2 rounded-md hover:border-acento hover:text-texto-principal
+           transition-colors;
+  }
+
+  /* Pill de nav activa */
+  .nav-pill-activa {
+    @apply bg-[#222] text-white;
+  }
+}
